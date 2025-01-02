@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import Length, DataRequired
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
@@ -35,6 +35,12 @@ class WordForm(FlaskForm):
     meaning = StringField('Meaning', validators=[Length(min=1, max=255)])
     submit = SubmitField('Submit')
 
+# Login form
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
 # Load user
 @login_manager.user_loader
 def load_user(user_id):
@@ -59,14 +65,19 @@ def admin():
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.password == form.password.data:
             login_user(user)
             return redirect(url_for('admin'))
-    return render_template('login.html')
+    return render_template('login.html', form=form)
+
+# Logout user
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 # Create a route for homepage
 @app.route('/')

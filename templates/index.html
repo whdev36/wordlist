@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Words{% endblock %}
-
 {% block content %}
-hello
+<h1>Welcome to the Home Page!</h1>
+<p>This is a public page.</p>
+{% if current_user.is_authenticated %}
+    <p>Hello, {{ current_user.username }}!</p>
+{% else %}
+    <p>Please <a href="{{ url_for('login') }}">login</a> to access admin features.</p>
+{% endif %}
 {% endblock %}

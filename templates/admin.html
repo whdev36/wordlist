@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if current_user.is_admin %}
+    <h1>Welcome, Admin!</h1>
+    <h3>Add a New Word</h3>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group mb-3">
+            <label for="word">Word</label>
+            {{ form.word(class="form-control", id="word") }}
+        </div>
+        <div class="form-group mb-3">
+            <label for="pronunciation">Pronunciation</label>
+            {{ form.pronunciation(class="form-control", id="pronunciation") }}
+        </div>
+        <div class="form-group mb-3">
+            <label for="meaning">Meaning</label>
+            {{ form.meaning(class="form-control", id="meaning") }}
+        </div>
+        {{ form.submit(class='btn btn-primary w-100') }}
+    </form>
+{% else %}
+    <h1>You are not authorized to view this page.</h1>
+{% endif %}
+{% endblock %}

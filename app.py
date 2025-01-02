@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import Length, DataRequired
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 # Setup app
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/')
@@ -10,6 +11,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///words.db'
 app.config['SECRET_KEY'] = 'secret!'
 
 db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Create a model for user
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
 # Create a model for words
 class Word(db.Model):
@@ -25,9 +35,36 @@ class WordForm(FlaskForm):
     meaning = StringField('Meaning', validators=[Length(min=1, max=255)])
     submit = SubmitField('Submit')
 
+# Load user
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Create a route for admin
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin():
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+
+    form = WordForm()
+    if form.validate_on_submit():
+        word = form.word.data
+        pronunciation = form.pronunciation.data
+        meaning = form.meaning.data
+        return redirect(url_for('admin'))
+
+    return render_template('admin.html', form=form)
+
+# Login page
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    pass
+
 # Create a route for homepage
 @app.route('/')
 def index():
+    # form = 
     return render_template('index.html')
 
 # Run the web application
